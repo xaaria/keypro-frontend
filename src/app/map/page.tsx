@@ -2,6 +2,7 @@
 
 import { POIMarker } from "@/types/marker";
 import { useEffect, useState } from "react";
+import LeafletMap from "../components/LeafletMap";
 
 export default function Page() {
     
@@ -21,7 +22,7 @@ export default function Page() {
     return (
       <>
         Map View
-        <div id="map"></div>
+        <LeafletMap markers={poiMarkers} />
       </>
     );
 
