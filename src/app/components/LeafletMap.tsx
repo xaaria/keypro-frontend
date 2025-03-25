@@ -19,9 +19,11 @@ export default function LeafletMap({ markers }: Props) {
 
     const mapRef = useRef<L.Map | null>(null);
 
-    const [markerGroup, setMarkerGroup] = useState<L.LayerGroup | null>(null);
+    const markerGroupRef = useRef<L.LayerGroup>(null);
 
     const mapDivRef = useRef<HTMLDivElement>(null);
+
+    const [activeMarker, setActiveMarker] = useState<L.Marker | null>(null);
 
     useEffect( () => {
 
@@ -33,16 +35,18 @@ export default function LeafletMap({ markers }: Props) {
                 // ...
             }).setView(defaultCoordinates, 13);
 
-            // Add markers here!
-            setMarkerGroup( L.layerGroup() );
-            markerGroup?.addTo(mapRef.current);
-
+            
             // Add default layer
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(mapRef.current);
-
+            
+            // Add markers here!
+            const mg = L.layerGroup();
+            markerGroupRef.current = mg;
+            markerGroupRef.current?.addTo(mapRef.current);
 
             mapRef.current.addEventListener('click', (e: L.LeafletMouseEvent) => {
                 console.info(e.latlng)
+                markerGroupRef.current?.addLayer(getNewMarker(e.latlng));
             })
 
 
@@ -55,13 +59,33 @@ export default function LeafletMap({ markers }: Props) {
     }, [markers])
 
     function addMarker(m: POIMarker) {
-        // mapRef.current.has
-        // mapRef.current?.addLayer( new L.Marker([m.location_lat, m.location_long]));
+        markerGroupRef.current?.addLayer( new L.Marker([m.location_lat, m.location_long]));
+    }
+
+    function getNewMarker(location: L.LatLng): L.Marker {
+        const m = new L.Marker(location);
+        m.addEventListener('click', (e) => {
+            console.info("clicked!", e);
+        });
+        setActiveMarker(m);
+        return m;
     }
 
     return (
         <>
             <div id="map" ref={mapDivRef} style={{ border: '1px solid blue', height: '500px' }}></div>
+
+            { activeMarker && (
+                <div id="markerEdit">
+                    <h3>Edit marker</h3>
+                    ({ activeMarker.getLatLng().lat }, { activeMarker.getLatLng().lng })
+
+                    <label htmlFor="markerDesc">Description</label>
+                    <input name="markerDesc" type="text" maxLength={5000} />
+
+                    <button onClick={(e) => {} }>Save</button>
+                </div>
+            )}
         </>
     );
 
