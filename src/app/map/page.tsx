@@ -33,8 +33,8 @@ async function getMarkers(): Promise<POIMarker[]> {
   return Promise.resolve<POIMarker[]>([
     {
       id: "aaa",
-      location_lat: 23.777,
-      location_long: 61.4999,
+      location_lat: 60.166245, 
+      location_long: 24.901596,
       description: "sada",
       created_by: 1,
       created_at: new Date(), 
