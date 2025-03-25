@@ -1,6 +1,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #2068ec;
+  --primary-dark: #22468a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,4 +41,16 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+
+button {
+  padding: .5em 1em;
+  background-color: var(--primary);
+  border: 1px solid var(--primary-dark);
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
 }
