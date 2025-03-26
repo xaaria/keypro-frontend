@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { API_URL } from "../../../utils";
 
 export default function LoginForm() {
     
@@ -42,7 +43,7 @@ export default function LoginForm() {
     
         try {
         
-          const response = await fetch("http://localhost:8000/api/signup", {
+          const response = await fetch(`${API_URL}/api/signup`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -66,7 +67,7 @@ export default function LoginForm() {
     
         try {
         
-          const response = await fetch("http://localhost:8000/api/token", {
+          const response = await fetch(`${API_URL}/api/token`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),

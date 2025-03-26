@@ -4,6 +4,7 @@ import { POIMarker, POIMarkerUnmanaged } from "@/types/marker";
 import { useEffect, useRef, useState } from "react";
 import L, { LatLngExpression, marker } from "leaflet";
 import { v4 as uuidv4 } from 'uuid';
+import { API_URL } from "../../../utils";
 
 type Props = {
     markers: POIMarker[],
@@ -152,7 +153,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
             const poiWithFormValues = {...poi, description: markerDesc }
             const body: string = JSON.stringify(poiWithFormValues);
             
-            const resp = await fetch(`http://localhost:8000/api/pois`, {
+            const resp = await fetch(`${API_URL}/api/pois`, {
                 method: 'POST', // TODO: add support for PUT,
                 headers: {
                     'Content-Type': 'application/json',
@@ -183,7 +184,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
             const poiWithFormValues = {...poi, description: markerDesc }
             const body: string = JSON.stringify(poiWithFormValues);
             
-            const resp = await fetch(`http://localhost:8000/api/pois/${poi.id}`, {
+            const resp = await fetch(`${API_URL}/api/pois/${poi.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -232,7 +233,6 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
             { activeMarker && (
                 <>
-                    Unsaved IDS: { unsavedMarkers.length }
                     { canEdit(activeMarkerPOI?.created_by) ? (
 
                         <div id="markerEdit">
