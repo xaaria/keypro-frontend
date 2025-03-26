@@ -12,21 +12,28 @@ export default function Page() {
 
     // Load markers during component load
     useEffect(() => {
-        const fetchData = async () => {
-          const resp = await getMarkers();
-          if(resp.ok) {
-            const json: PaginatedResp<POIMarker> = await resp.json();
-            setPoiMarkers(json.results);
-          }
-          // TODO: handle errors?
-        }
         fetchData();
-    }, [])
+    }, []);
+
+    async function fetchData() {
+      const resp = await getMarkers();
+      if(resp.ok) {
+        const json: PaginatedResp<POIMarker> = await resp.json();
+        setPoiMarkers(json.results);
+      }
+      // TODO: handle errors?
+    }
+
+    function reloadMap() {
+      fetchData();
+    }
 
     return (
       <>
         <h1>Map View</h1>
-        <LeafletMap markers={poiMarkers} />
+        <span onClick={()=>reloadMap()}>Reload</span>
+        <span onClick={()=>reloadMap()}>Want to edit map? Login</span>
+        <LeafletMap markers={poiMarkers} reloadMap={reloadMap} />
       </>
     );
 

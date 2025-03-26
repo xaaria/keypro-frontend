@@ -2,11 +2,12 @@
 
 import { POIMarker, POIMarkerUnmanaged } from "@/types/marker";
 import { useEffect, useRef, useState } from "react";
-import L, { LatLngExpression } from "leaflet";
+import L, { LatLngExpression, marker } from "leaflet";
 import { v4 as uuidv4 } from 'uuid';
 
 type Props = {
     markers: POIMarker[],
+    reloadMap: Function,
 }
 
 type OptionsWithPOI = L.MarkerOptions & { poi: POIMarkerUnmanaged };
@@ -16,9 +17,12 @@ type OptionsWithPOI = L.MarkerOptions & { poi: POIMarkerUnmanaged };
  * 
  * Receives marker data from props
  */
-export default function LeafletMap({ markers }: Props) {
+export default function LeafletMap({ markers, reloadMap }: Props) {
 
     const defaultCoordinates: LatLngExpression = [60.166245, 24.901596];
+
+    // Mock auth, TODO
+    const [authToken, setAuthToken] = useState<string>("3ff8616716573b8ba3cbf1c56dae47b091d83c64");
 
     const mapRef = useRef<L.Map | null>(null);
 
@@ -38,20 +42,17 @@ export default function LeafletMap({ markers }: Props) {
     useEffect(() => {
         if(activeMarker) {
             const poi = (activeMarker?.options as any).poi;
-            console.info(poi)
             setActiveMarkerPOI(poi);
         }
     }, [activeMarker])
 
     useEffect( () => {
-
         if (mapDivRef.current !== null && mapRef.current == null) {
-            console.info(mapDivRef.current)
             
             // Init map
             mapRef.current = L.map(mapDivRef.current, {
                 // ...
-            }).setView(defaultCoordinates, 13);
+            }).setView(defaultCoordinates, 15);
 
             
             // Add default layer
@@ -64,11 +65,10 @@ export default function LeafletMap({ markers }: Props) {
 
             // On click: create a new Marker if no editing in progress
             mapRef.current.addEventListener('click', (e: L.LeafletMouseEvent) => {
-                console.info(e.latlng)
                 e.originalEvent.preventDefault();
                 // Do no add new marker if we are still in editing mode
                 console.info( activeMarker === null )
-                if(activeMarker === null) {
+                if(activeMarker === null /* DOES NOT WORK??? */) {
                     const newMarker: L.Marker = getNewMarker(e.latlng);
                     markerGroupRef?.current?.addLayer(newMarker);
                     setActiveMarker(newMarker);
@@ -81,6 +81,10 @@ export default function LeafletMap({ markers }: Props) {
 
     useEffect(() => {
         console.info("props", markers);
+        // Clear all and add as new ones
+        markerGroupRef.current?.clearLayers();
+        setActiveMarker(null);
+        setMarkerDesc("");
         markers.map(m => addMarker(m));
     }, [markers])
 
@@ -91,23 +95,21 @@ export default function LeafletMap({ markers }: Props) {
             bubblingMouseEvents: false,
         } as OptionsWithPOI)
 
-        m.addEventListener('click', (e) => {
-            e.originalEvent.preventDefault();
-            if(activeMarker === null) {
-                setActiveMarker(m);
-            }
-        });
+        m.addEventListener('click', getMarkerOnClickEvent(m));
 
         markerGroupRef.current?.addLayer(m);
     }
 
     function getNewMarker(location: L.LatLng): L.Marker {
 
-        const id = uuidv4();
-        setUnsavedMarkers([...unsavedMarkers, id]);
+        const id: string = uuidv4();
+        setUnsavedMarkers([...unsavedMarkers, id]); // NOT WORKING???
 
         // Create marker and add custom property poi with our data
         const m = new L.Marker(location, {
+            riseOnHover: true,
+            title: "Unsaved " + id,
+            opacity: 0.6,
             poi: {
                 id,
                 location_lat: location.lat,
@@ -118,15 +120,25 @@ export default function LeafletMap({ markers }: Props) {
             bubblingMouseEvents: false,
         } as OptionsWithPOI);
 
-        m.addEventListener('click', (e) => {
-            e.originalEvent.preventDefault();
-            console.info("Marker clicked!", e, "active", activeMarker);
-            // DOES NOT WORK????
-            if(activeMarker === null) {
-                setActiveMarker(m);
-            }
-        });
+        m.openPopup();
+        m.addEventListener('click', getMarkerOnClickEvent(m));
         return m;
+    }
+
+    function startMarkerEdit(m: L.Marker): void {
+        setMarkerDesc((m.options as OptionsWithPOI).poi!.description);
+        setActiveMarker(m);
+    }
+
+    function onClickSave() {
+        
+        // POST
+        if(unsavedMarkers.includes(activeMarkerPOI!.id)) {
+            saveMarker();
+        } else {
+            // PATCH
+            updateMarker();
+        }
     }
 
     /** save or update? */
@@ -144,13 +156,14 @@ export default function LeafletMap({ markers }: Props) {
                 method: 'POST', // TODO: add support for PUT,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token 3ff8616716573b8ba3cbf1c56dae47b091d83c64`,
+                    'Authorization': `Token ${authToken}`,
                 },
                 body
             });
             
             if(resp.ok) {
                 const id = (await resp.json()).id;
+                reloadMap();
                 alert(`Marker was saved successfully! ID ${id}`);
             } else {
                 alert('fail!')
@@ -161,19 +174,55 @@ export default function LeafletMap({ markers }: Props) {
 
     }
 
-    /** Performs DELETE request */
-    async function deleteMarker(id: POIMarker['id']) {
-        await fetch(`http://localhost:8000/api/pois/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Token 3ff8616716573b8ba3cbf1c56dae47b091d83c64`,
-            },
-        })
+    async function updateMarker() {
+        if(activeMarker) {
+
+            // TODO: use real data
+            const poi = (activeMarker.options as { poi: any }).poi;
+            // Overwrite object values with new ones
+            const poiWithFormValues = {...poi, description: markerDesc }
+            const body: string = JSON.stringify(poiWithFormValues);
+            
+            const resp = await fetch(`http://localhost:8000/api/pois/${poi.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token 3ff8616716573b8ba3cbf1c56dae47b091d83c64`,
+                },
+                body
+            });
+
+            if(resp.ok) {
+                alert(`Marker was updated successfully`);
+                reloadMap();
+            } else {
+                alert('fail!')
+            }
+
+        }
     }
 
-    function isOwnMarker(created_by: POIMarker['created_by']): boolean {
+    function getMarkerOnClickEvent(m: L.Marker) {
+        return (e: L.LeafletMouseEvent) => {
+            e.originalEvent.preventDefault();
+            startMarkerEdit(m);
+        };
+    }
+
+    /** Performs DELETE request */
+    async function deleteMarker(id: POIMarker['id']) {
+        const resp = await fetch(`http://localhost:8000/api/pois/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${authToken}`,
+            },
+        });
+        if(resp.ok) { reloadMap(); }
+    }
+
+    function canEdit(created_by: POIMarker['created_by']): boolean {
         const auth_id = 1; // TODO:
-        return auth_id && created_by === auth_id;
+        return authToken.length > 0 && created_by === auth_id;
     } 
 
 
@@ -183,31 +232,43 @@ export default function LeafletMap({ markers }: Props) {
 
             { activeMarker && (
                 <>
-                    { isOwnMarker(activeMarkerPOI?.created_by) ? (
+                    Unsaved IDS: { unsavedMarkers.length }
+                    { canEdit(activeMarkerPOI?.created_by) ? (
 
                         <div id="markerEdit">
+                            <hr/>
                             <h3>Edit marker [#{activeMarkerPOI?.id}]</h3>
                             ({ activeMarker?.getLatLng().lat }, { activeMarker?.getLatLng().lng })
                             <div>
                                 <div><label htmlFor="markerDesc">Description</label></div>
                                 <div>
                                     <textarea 
-                                    onChange={(e)=> setMarkerDesc(e.target.value)}
-                                    defaultValue={markerDesc}
-                                    name="markerDesc" maxLength={5000} required placeholder="...">
+                                        onChange={(e)=> setMarkerDesc(e.target.value)}
+                                        value={markerDesc}
+                                        name="markerDesc" 
+                                        maxLength={5000} 
+                                        required 
+                                        placeholder="...">
                                     </textarea>
                                 </div>
                             </div>
                             <div>
-                            <button onClick={(e) => saveMarker()}>Save</button>
+                            <button onClick={(e) => onClickSave()}>Save</button>
                             { 
-                                !(unsavedMarkers.includes(activeMarkerPOI!.id)) && (
+                                (!unsavedMarkers.includes(activeMarkerPOI!.id)) && (
                                     <button onClick={(e) => {deleteMarker(activeMarkerPOI!.id)} } className="danger">Remove</button>
                                 )
                             }
                             </div>
                         </div>
-                    ) : (<h3>Cant' edit: This marker is owned by user #{activeMarkerPOI?.created_by}</h3>) }
+                    ) : (
+                        <div>
+                            <h2>Cant' edit. This marker is owned by user #{activeMarkerPOI?.created_by}</h2>
+                            <h3>If it is yours, sign up first</h3>
+                            <div>ID: {activeMarkerPOI?.id}</div>
+                            <div>Description: {markerDesc}</div>
+                        </div>
+                    )}
                 </>
             )}
         </>
