@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AuthContext from "@/AuthContext";
+import Link from "next/link";
+// import { useContext } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,13 +25,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  // const auth: AuthUser = useContext(AuthCtx);
+  const auth = {id:1,token:"aaa"}
+
   return (
     <html lang="en">
       <head>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin=""/>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        {/* <AuthContext.Provider value={auth}> */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '0 2em' }}>
+              <Link href="/map">Map View</Link>
+              <Link href="/login">Sign up or Login</Link>
+            </div>
+            <div style={{ padding: '2em' }}>
+              {children}
+            </div>
+          {/* </AuthContext.Provider> */}
+        </div>
       </body>
     </html>
   );

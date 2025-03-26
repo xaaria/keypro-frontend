@@ -1,14 +1,17 @@
 "use client";
 
 import { POIMarker } from "@/types/marker";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import LeafletMap from "../components/LeafletMap";
 import { PaginatedResp } from "@/types/http";
+import Link from "next/link";
 
 export default function Page() {
     
     /** Markers visible on the map */
     const [poiMarkers, setPoiMarkers] = useState<POIMarker[]>([]);
+
+    // const auth = useContext(AuthContext);
 
     // Load markers during component load
     useEffect(() => {
@@ -31,8 +34,9 @@ export default function Page() {
     return (
       <>
         <h1>Map View</h1>
-        <span onClick={()=>reloadMap()}>Reload</span>
-        <span onClick={()=>reloadMap()}>Want to edit map? Login</span>
+        {/* { auth?.token } */}
+        <span onClick={()=>reloadMap()}>Reload</span><br/>
+        <Link href="/login">Want to edit map? Login</Link>
         <LeafletMap markers={poiMarkers} reloadMap={reloadMap} />
       </>
     );

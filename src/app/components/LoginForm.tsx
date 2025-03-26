@@ -42,9 +42,9 @@ export default function LoginForm() {
     
         try {
         
-          const response = await fetch("/api/signup", {
+          const response = await fetch("http://localhost:8000/api/signup", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({ username, password }),
           });
     
@@ -53,7 +53,7 @@ export default function LoginForm() {
           }
     
           const data = await response.json();
-          alert("Signup successful!"); // Replace with navigation or state update
+          alert(`Signup successful! Username ${data.username}`); // Replace with navigation or state update
     
         } catch (err: any) {
             setErrMsg(err?.message);
@@ -66,7 +66,7 @@ export default function LoginForm() {
     
         try {
         
-          const response = await fetch("/api/token", {
+          const response = await fetch("http://localhost:8000/api/token", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -77,7 +77,7 @@ export default function LoginForm() {
           }
     
           const data = await response.json();
-          alert("Login successful!"); // Replace with navigation or state update
+          alert("Login successful!"); 
     
         } catch (err: any) {
             setErrMsg(err?.message);

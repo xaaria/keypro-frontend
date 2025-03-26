@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
@@ -25,5 +26,5 @@ function getToken(): string | undefined {
 // Is used based on this logic:
 export const config = {
     // matcher allows you to filter Middleware to run on specific paths.
-    matcher: ['/map/:path*'],
+    // matcher: ['/map/:path*'],
 }
