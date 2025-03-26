@@ -3,6 +3,7 @@
 import { POIMarker } from "@/types/marker";
 import { useEffect, useState } from "react";
 import LeafletMap from "../components/LeafletMap";
+import { PaginatedResp } from "@/types/http";
 
 export default function Page() {
     
@@ -12,34 +13,29 @@ export default function Page() {
     // Load markers during component load
     useEffect(() => {
         const fetchData = async () => {
-        const ms = await getMarkers();
-        console.info(ms);
-        setPoiMarkers(ms);
+          const resp = await getMarkers();
+          if(resp.ok) {
+            const json: PaginatedResp<POIMarker> = await resp.json();
+            setPoiMarkers(json.results);
+          }
+          // TODO: handle errors?
         }
         fetchData();
     }, [])
 
     return (
       <>
-        Map View
+        <h1>Map View</h1>
         <LeafletMap markers={poiMarkers} />
       </>
     );
 
 }
 
-async function getMarkers(): Promise<POIMarker[]> {
-
-  return Promise.resolve<POIMarker[]>([
-    {
-      id: "aaa",
-      location_lat: 60.166245, 
-      location_long: 24.901596,
-      description: "sada",
-      created_by: 1,
-      created_at: new Date(), 
-      updated_at:  new Date(), 
+async function getMarkers(): Promise<Response> {
+  return fetch(`http://localhost:8000/api/pois`, {
+    headers: {
+      'Accept': 'application/json'
     }
-  ]);
-
+  });
 }

@@ -3,6 +3,7 @@
   --foreground: #171717;
   --primary: #2068ec;
   --primary-dark: #22468a;
+  --danger: #e94747;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -48,6 +49,11 @@ button {
   padding: .5em 1em;
   background-color: var(--primary);
   border: 1px solid var(--primary-dark);
+}
+
+button.danger {
+  border: var(--danger);
+  background-color: var(--danger);
 }
 
 button:disabled {
