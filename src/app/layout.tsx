@@ -37,9 +37,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {/* <AuthContext.Provider value={auth}> */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '0 2em' }}>
-              <Link href="/map">Map View</Link>
-              <Link href="/login">Sign up or Login</Link>
+            <div style={{ padding: '0 2em', 'display': 'flex', 'gap': '1em', }}>
+              <div><Link href="/map">Map View</Link></div>
+              <div><Link href="/login">Sign up or Login</Link></div>
             </div>
             <div style={{ padding: '2em' }}>
               {children}

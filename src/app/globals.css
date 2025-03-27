@@ -45,11 +45,16 @@ a {
   }
 }
 
+input {
+  padding: 3px;
+  outline: none;
+}
 
 button {
   padding: .5em 1em;
   background-color: var(--primary);
   border: 1px solid var(--primary-dark);
+  border-radius: 5px;
 }
 
 button.danger {
