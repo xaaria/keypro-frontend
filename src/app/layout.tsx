@@ -26,26 +26,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  // const auth: AuthUser = useContext(AuthCtx);
-  const auth = {id:1,token:"aaa"}
-
   return (
     <html lang="en">
       <head>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin=""/>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {/* <AuthContext.Provider value={auth}> */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '0 2em', 'display': 'flex', 'gap': '1em', }}>
-              <div><Link href="/map">Map View</Link></div>
-              <div><Link href="/login">Sign up or Login</Link></div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '0 2em', 'display': 'flex', 'gap': '1em', }}>
+                <div><Link href="/map">Map View</Link></div>
+                <div><Link href="/login">Sign up or Login</Link></div>
+              </div>
+              <div style={{ padding: '2em' }}>
+                {children}
+              </div>
             </div>
-            <div style={{ padding: '2em' }}>
-              {children}
-            </div>
-          {/* </AuthContext.Provider> */}
-        </div>
       </body>
     </html>
   );

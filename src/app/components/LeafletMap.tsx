@@ -1,11 +1,13 @@
 "use client";
 
 import { POIMarker, POIMarkerUnmanaged } from "@/types/marker";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useContext, useEffect, useRef, useState } from "react";
 import L, { LatLngExpression, marker } from "leaflet";
 import { v4 as uuidv4 } from 'uuid';
 import { API_URL } from "../../../utils";
 import Link from "next/link";
+import AuthContext, { AuthUser } from "@/AuthContext";
+import { AuthContextProvider } from "@/AuthContextProvider";
 
 type Props = {
     markers: POIMarker[],
@@ -23,6 +25,8 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
     const DEFAULT_COORDS: LatLngExpression = [60.166245, 24.901596];
     const DESC_MAXLEN: number = 5000;
+
+    const auth: AuthUser | undefined = useContext(AuthContext);
 
     // Mock auth, TODO
     const [authToken, setAuthToken] = useState<string>("3ff8616716573b8ba3cbf1c56dae47b091d83c64");
@@ -84,7 +88,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
     useEffect(() => {
         console.info("View updated. Got props:", markers);
-        
+        console.info("CTX", auth)
         // Clear all and add as new ones
         markerGroupRef.current?.clearLayers();
         markers.map(m => addMarker(m));
@@ -92,6 +96,10 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
         setActiveMarker(null);
         setMarkerDesc("");
     }, [markers])
+
+    useEffect(() => {
+        console.info("effect",auth)
+    }, [auth])
 
     function addMarker(poi: POIMarker) {
 
@@ -254,15 +262,16 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
     return (
         <>
+        <AuthContextProvider>
             <div id="map" ref={mapDivRef} style={{ border: '1px solid blue', height: '450px' }}></div>
-
+            { auth.id } {auth.token}
             { activeMarker && (
                 <>
                     { canEdit(activeMarkerPOI?.created_by) ? (
 
                         <div id="markerEdit" style={markerEditStyle}>
-                            <hr/>
                             <h3>Edit marker [#{activeMarkerPOI?.id}]</h3>
+                            <hr/>
                             <div>Location: ({ activeMarker?.getLatLng().lat }, { activeMarker?.getLatLng().lng })</div>
                             <div>{ isManagedMarker(activeMarkerPOI) && <>Created: { activeMarkerPOI.created_at }</>}</div>
                             <div>
@@ -299,6 +308,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
                     )}
                 </>
             )}
+        </AuthContextProvider>
         </>
     );
 

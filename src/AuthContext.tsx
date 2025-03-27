@@ -1,16 +1,16 @@
-"use client";
-
 import { createContext } from 'react';
 
-// TODO: move types to another file?
-type User = {
-    id: number;
-    token?: string;
+export type AuthUser = {
+    id: number | undefined;
+    token: string | undefined;
 }
   
-export type AuthUser = User | undefined;
   
-// Context of the Authenticated user. Undefined if not auth.
-const AuthContext = createContext<AuthUser>(undefined);
+// Context of the Authenticated user
+// Fields will be undefinded if not authenticated
+const AuthContext = createContext<AuthUser>({
+    id: undefined,
+    token: undefined,
+});
 
 export default AuthContext;
