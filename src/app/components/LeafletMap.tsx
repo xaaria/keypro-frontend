@@ -2,7 +2,7 @@
 
 import { POIMarker, POIMarkerUnmanaged } from "@/types/marker";
 import { CSSProperties, useContext, useEffect, useRef, useState } from "react";
-import L, { LatLngExpression, marker } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 import { v4 as uuidv4 } from 'uuid';
 import { API_URL } from "../../../utils";
 import Link from "next/link";
@@ -41,7 +41,9 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     const [markerDesc, setMarkerDesc] = useState<string>("");
 
     // Array of markers IDs not yet stored to back end
-    const [unsavedMarkers, setUnsavedMarkers] = useState<string[]>([]);
+    // const [unsavedMarkers, setUnsavedMarkers] = useState<string[]>([]);
+    const unsavedMarkers = useRef<string[]>([]);
+
 
     useEffect(() => {
         if(activeMarker) {
@@ -112,7 +114,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     function getNewMarker(location: L.LatLng): L.Marker {
 
         const id: string = uuidv4();
-        setUnsavedMarkers([...unsavedMarkers, id]); // NOT WORKING???
+        unsavedMarkers.current = ([...unsavedMarkers.current, id]); // NOT WORKING???
 
         // Create marker and add custom property poi with our data
         console.info(auth?.id);
@@ -137,12 +139,13 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     function startMarkerEdit(m: L.Marker): void {
         setMarkerDesc(getPOI(m).description);
         setActiveMarker(m);
+        setActiveMarkerPOI(getPOI(m));
     }
 
     function onClickSave() {
         
         // POST
-        if(unsavedMarkers.includes(activeMarkerPOI!.id)) {
+        if(unsavedMarkers.current.includes(activeMarkerPOI!.id)) {
             saveMarker();
         } else {
             // PATCH
@@ -247,6 +250,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
         display: 'flex',
         flexDirection: 'column',
         gap: ".5em",
+        padding: '2em'
     };
 
     function isManagedMarker(m: Partial<POIMarker> | null): m is POIMarker {
@@ -283,7 +287,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
                             <div id="actions" style={{ display:'flex', 'gap': '1em' }}>
                                 <button onClick={(e) => onClickSave()}>Save</button>
                                 { 
-                                    (!unsavedMarkers.includes(activeMarkerPOI!.id)) && (
+                                    (activeMarkerPOI && !unsavedMarkers.current.includes(activeMarkerPOI!.id)) && (
                                         <button onClick={(e) => {deleteMarker(activeMarkerPOI!.id)} } className="danger">Remove</button>
                                     )
                                 }

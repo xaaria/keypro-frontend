@@ -8,6 +8,7 @@ export default function LoginForm() {
     const [password, setPassword] = useState<string>("");
 
     const [errMsg, setErrMsg] = useState<string>("");
+
   
     return (
       <>
@@ -82,6 +83,7 @@ export default function LoginForm() {
           const token = data.token;
           console.info(id, token);
           setAuthToLocalStorage(id, token);
+          alert("Logged in! Welcome user ID " + id)
     
         } catch (err: any) {
             setErrMsg(err?.message);
