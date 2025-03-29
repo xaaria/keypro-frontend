@@ -5,13 +5,14 @@ import { useContext, useEffect, useState } from "react";
 import LeafletMap from "../components/LeafletMap";
 import { PaginatedResp } from "@/types/http";
 import Link from "next/link";
+import AuthContext from "@/AuthContext";
 
 export default function Page() {
     
     /** Markers visible on the map */
     const [poiMarkers, setPoiMarkers] = useState<POIMarker[]>([]);
 
-    // const auth = useContext(AuthContext);
+    const auth = useContext(AuthContext);
 
     // Load markers during component load
     useEffect(() => {
@@ -34,9 +35,11 @@ export default function Page() {
     return (
       <>
         <h1>Map View</h1>
-        {/* { auth?.token } */}
         <span onClick={()=>reloadMap()}>Reload</span><br/>
-        <Link href="/login">Want to edit map? Login</Link>
+        { auth.id === undefined && (
+            <Link href="/login">Want to edit map? Login</Link>
+          )
+        }
         <LeafletMap markers={poiMarkers} reloadMap={reloadMap} />
       </>
     );

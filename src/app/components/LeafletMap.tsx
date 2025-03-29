@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { API_URL } from "../../../utils";
 import Link from "next/link";
 import AuthContext, { AuthUser } from "@/AuthContext";
-import { AuthContextProvider } from "@/AuthContextProvider";
 
 type Props = {
     markers: POIMarker[],
@@ -26,10 +25,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     const DEFAULT_COORDS: LatLngExpression = [60.166245, 24.901596];
     const DESC_MAXLEN: number = 5000;
 
-    const auth: AuthUser | undefined = useContext(AuthContext);
-
-    // Mock auth, TODO
-    const [authToken, setAuthToken] = useState<string>("3ff8616716573b8ba3cbf1c56dae47b091d83c64");
+    const auth: AuthUser = useContext(AuthContext);
 
     const mapDivRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +94,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     }, [markers])
 
     useEffect(() => {
-        console.info("effect",auth)
+        console.info(auth);
     }, [auth])
 
     function addMarker(poi: POIMarker) {
@@ -119,16 +115,16 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
         setUnsavedMarkers([...unsavedMarkers, id]); // NOT WORKING???
 
         // Create marker and add custom property poi with our data
+        console.info(auth?.id);
         const m = new L.Marker(location, {
-            riseOnHover: true,
             title: "Unsaved " + id,
-            opacity: 0.6,
+            opacity: 0.5,
             poi: {
                 id,
                 location_lat: location.lat,
                 location_long: location.lng,
                 description: "",
-                created_by: 1, // TODO: get real id 
+                created_by: 1
             },
             bubblingMouseEvents: false,
         } as OptionsWithPOI);
@@ -161,7 +157,6 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
         if(activeMarker) {
 
-            // TODO: use real data
             const poi = (activeMarker.options as { poi: any }).poi;
             // Overwrite object values with new ones
             const poiWithFormValues = {...poi, description: markerDesc }
@@ -171,7 +166,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
                 method: 'POST', // TODO: add support for PUT,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${authToken}`,
+                    'Authorization': `Token ${auth?.token}`,
                 },
                 body
             });
@@ -195,7 +190,6 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
     async function updateMarker() {
         if(activeMarker) {
 
-            // TODO: use real data
             const poi = getPOI(activeMarker);
             // Overwrite object values with new ones
             const poiWithFormValues = {...poi, description: markerDesc }
@@ -205,7 +199,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token 3ff8616716573b8ba3cbf1c56dae47b091d83c64`,
+                    'Authorization': `Token ${auth?.token}`,
                 },
                 body
             });
@@ -234,15 +228,14 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
         const resp = await fetch(`http://localhost:8000/api/pois/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Token ${authToken}`,
+                'Authorization': `Token ${auth!.token}`,
             },
         });
         if(resp.ok) { reloadMap(); }
     }
 
     function canEdit(created_by: POIMarker['created_by']): boolean {
-        const auth_id = 1; // TODO:
-        return authToken.length > 0 && created_by === auth_id;
+        return !!auth && created_by === auth.id;
     }
 
     // Gets POI object assigned to a Marker
@@ -262,9 +255,7 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
 
     return (
         <>
-        <AuthContextProvider>
             <div id="map" ref={mapDivRef} style={{ border: '1px solid blue', height: '450px' }}></div>
-            { auth.id } {auth.token}
             { activeMarker && (
                 <>
                     { canEdit(activeMarkerPOI?.created_by) ? (
@@ -308,7 +299,6 @@ export default function LeafletMap({ markers, reloadMap }: Props) {
                     )}
                 </>
             )}
-        </AuthContextProvider>
         </>
     );
 

@@ -9,7 +9,7 @@ export type AuthUser = {
 // Context of the Authenticated user
 // Fields will be undefinded if not authenticated
 const AuthContext = createContext<AuthUser>({
-    id: undefined,
+    id: undefined, 
     token: undefined,
 });
 

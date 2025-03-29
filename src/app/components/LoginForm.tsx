@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { API_URL } from "../../../utils";
+import { API_URL, setAuthToLocalStorage } from "../../../utils";
 
 export default function LoginForm() {
     
@@ -55,7 +55,6 @@ export default function LoginForm() {
     
           const data = await response.json();
           alert(`Signup successful! Username ${data.username}`); // Replace with navigation or state update
-    
         } catch (err: any) {
             setErrMsg(err?.message);
         }
@@ -75,10 +74,14 @@ export default function LoginForm() {
     
           if (!response.ok) {
             setErrMsg("Something went wrong!")
+            return;
           }
     
           const data = await response.json();
-          alert("Login successful!"); 
+          const id = data.id;
+          const token = data.token;
+          console.info(id, token);
+          setAuthToLocalStorage(id, token);
     
         } catch (err: any) {
             setErrMsg(err?.message);
